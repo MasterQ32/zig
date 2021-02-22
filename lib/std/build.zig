@@ -1217,6 +1217,8 @@ pub const GeneratedFile = struct {
     }
 };
 
+/// A file source is a reference to an existing or future file.
+///
 pub const FileSource = union(enum) {
     /// A plain file path, relative to build root.
     path: []const u8,
@@ -1273,10 +1275,9 @@ const BuildOptionArtifactArg = struct {
     artifact: *LibExeObjStep,
 };
 
-const BuildOptionWriteFileArg = struct {
+const BuildOptionFileSourceArg = struct {
     name: []const u8,
-    write_file: *WriteFileStep,
-    basename: []const u8,
+    source: FileSource,
 };
 
 pub const LibExeObjStep = struct {
@@ -1326,7 +1327,7 @@ pub const LibExeObjStep = struct {
     packages: ArrayList(Pkg),
     build_options_contents: std.ArrayList(u8),
     build_options_artifact_args: std.ArrayList(BuildOptionArtifactArg),
-    build_options_write_file_args: std.ArrayList(BuildOptionWriteFileArg),
+    build_options_file_source_args: std.ArrayList(BuildOptionFileSourceArg),
 
     object_src: []const u8,
 
@@ -1489,7 +1490,7 @@ pub const LibExeObjStep = struct {
             .object_src = undefined,
             .build_options_contents = std.ArrayList(u8).init(builder.allocator),
             .build_options_artifact_args = std.ArrayList(BuildOptionArtifactArg).init(builder.allocator),
-            .build_options_write_file_args = std.ArrayList(BuildOptionWriteFileArg).init(builder.allocator),
+            .build_options_file_source_args = std.ArrayList(BuildOptionFileSourceArg).init(builder.allocator),
             .c_std = Builder.CStd.C99,
             .override_lib_dir = null,
             .main_pkg_path = null,
@@ -1978,18 +1979,16 @@ pub const LibExeObjStep = struct {
     /// The value is the path in the cache dir.
     /// Adds a dependency automatically.
     /// basename refers to the basename of the WriteFileStep
-    pub fn addBuildOptionWriteFile(
+    pub fn addBuildOptionFileSource(
         self: *LibExeObjStep,
         name: []const u8,
-        write_file: *WriteFileStep,
-        basename: []const u8,
+        source: FileSource,
     ) void {
-        self.build_options_write_file_args.append(.{
+        self.build_options_file_source_args.append(.{
             .name = name,
-            .write_file = write_file,
-            .basename = basename,
+            .source = source.dupe(self.builder),
         }) catch unreachable;
-        self.step.dependOn(&write_file.step);
+        source.addStepDependencies(&self.step);
     }
 
     pub fn addSystemIncludeDir(self: *LibExeObjStep, path: []const u8) void {
@@ -2214,7 +2213,7 @@ pub const LibExeObjStep = struct {
 
         if (self.build_options_contents.items.len > 0 or
             self.build_options_artifact_args.items.len > 0 or
-            self.build_options_write_file_args.items.len > 0)
+            self.build_options_file_source_args.items.len > 0)
         {
             // Render build artifact and write file options at the last minute, now that the path is known.
             //
@@ -2227,11 +2226,11 @@ pub const LibExeObjStep = struct {
                     self.builder.pathFromRoot(item.artifact.getOutputPath()),
                 );
             }
-            for (self.build_options_write_file_args.items) |item| {
+            for (self.build_options_file_source_args.items) |item| {
                 self.addBuildOption(
                     []const u8,
                     item.name,
-                    self.builder.pathFromRoot(item.write_file.getOutputPath(item.basename)),
+                    item.source.getPath(self.builder),
                 );
             }
 
