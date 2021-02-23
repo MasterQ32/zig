@@ -258,7 +258,7 @@ pub const Builder = struct {
     }
 
     pub fn addAssemble(self: *Builder, name: []const u8, src: []const u8) *LibExeObjStep {
-        return addAssembleSource(self, name, FileSource.relative(src));
+        return addAssembleSource(self, name, .{ .path = src });
     }
 
     pub fn addAssembleSource(self: *Builder, name: []const u8, src: FileSource) *LibExeObjStep {
@@ -883,7 +883,7 @@ pub const Builder = struct {
 
     ///`dest_rel_path` is relative to prefix path
     pub fn installFile(self: *Builder, src_path: []const u8, dest_rel_path: []const u8) void {
-        self.getInstallStep().dependOn(&self.addInstallFileWithDir(FileSource.relative(src_path), .Prefix, dest_rel_path).step);
+        self.getInstallStep().dependOn(&self.addInstallFileWithDir(.{ .path = src_path }, .Prefix, dest_rel_path).step);
     }
 
     pub fn installDirectory(self: *Builder, options: InstallDirectoryOptions) void {
@@ -892,12 +892,12 @@ pub const Builder = struct {
 
     ///`dest_rel_path` is relative to bin path
     pub fn installBinFile(self: *Builder, src_path: []const u8, dest_rel_path: []const u8) void {
-        self.getInstallStep().dependOn(&self.addInstallFileWithDir(FileSource.relative(src_path), .Bin, dest_rel_path).step);
+        self.getInstallStep().dependOn(&self.addInstallFileWithDir(.{ .path = src_path }, .Bin, dest_rel_path).step);
     }
 
     ///`dest_rel_path` is relative to lib path
     pub fn installLibFile(self: *Builder, src_path: []const u8, dest_rel_path: []const u8) void {
-        self.getInstallStep().dependOn(&self.addInstallFileWithDir(FileSource.relative(src_path), .Lib, dest_rel_path).step);
+        self.getInstallStep().dependOn(&self.addInstallFileWithDir(.{ .path = src_path }, .Lib, dest_rel_path).step);
     }
 
     pub fn installRaw(self: *Builder, artifact: *LibExeObjStep, dest_filename: []const u8) void {
