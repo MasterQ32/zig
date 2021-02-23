@@ -1257,7 +1257,6 @@ pub const FileSource = union(enum) {
             .path => |p| builder.pathFromRoot(p),
             .generated => |gen| gen.getPath(),
         };
-        std.debug.assert(std.fs.path.isAbsolute(path));
         return path;
     }
 
