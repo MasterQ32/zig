@@ -581,7 +581,7 @@ pub const StackTracesContext = struct {
 
             const src_basename = "source.zig";
             const write_src = b.addWriteFile(src_basename, source);
-            const exe = b.addExecutableSource("test", write_src.getFileSource(src_basename).?, false);
+            const exe = b.addExecutableSource("test", write_src.getFileSource(src_basename).?, .static);
             exe.setBuildMode(mode);
 
             const run_and_compare = RunAndCompareStep.create(
