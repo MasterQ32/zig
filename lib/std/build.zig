@@ -1878,8 +1878,13 @@ pub const LibExeObjStep = struct {
         source_duped.addStepDependencies(&self.step);
     }
 
-    pub fn addObjectFile(self: *LibExeObjStep, source: FileSource) void {
+    pub fn addObjectFile(self: *LibExeObjStep, source_file: []const u8) void {
+        self.addObjectFileSource(.{ .path = source_file });
+    }
+
+    pub fn addObjectFileSource(self: *LibExeObjStep, source: FileSource) void {
         self.link_objects.append(LinkObject{ .static_path = source.dupe(self.builder) }) catch unreachable;
+        source.addStepDependencies(&self.step);
     }
 
     pub fn addObject(self: *LibExeObjStep, obj: *LibExeObjStep) void {
