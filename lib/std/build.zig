@@ -1251,7 +1251,7 @@ pub const FileSource = union(enum) {
         }
     }
 
-    /// Should only be called during make(), returns an absolute path to the file.
+    /// Should only be called during make(), returns a path relative to the build root or absolute.
     pub fn getPath(self: FileSource, builder: *Builder) []const u8 {
         const path = switch (self) {
             .path => |p| builder.pathFromRoot(p),
